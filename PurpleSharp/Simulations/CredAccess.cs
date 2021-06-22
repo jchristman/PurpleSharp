@@ -27,7 +27,7 @@ namespace PurpleSharp.Simulations
                 List<User> usertargets = Targets.GetUserTargets(playbook_task, logger) ;
 
                 if (playbook_task.task_sleep > 0) logger.TimestampInfo(String.Format("Sleeping {0} seconds between attempt", playbook_task.task_sleep));
-                String domain = System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().DomainName;
+                String domain = playbook_task.domain != "" ? playbook_task.domain : System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().DomainName;
                 //if (playbook_task.user_target_type == 6) domain = ".";
 
                 foreach (var user in usertargets)
@@ -62,7 +62,7 @@ namespace PurpleSharp.Simulations
             List<Computer> host_targets = new List<Computer>();
             List<User> user_targets = new List<User>();
             List<Task> tasklist = new List<Task>();
-            string domain = System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().DomainName;
+            String domain = playbook_task.domain != "" ? playbook_task.domain : System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().DomainName;
 
             try
             {

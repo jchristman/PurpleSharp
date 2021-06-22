@@ -117,6 +117,7 @@ namespace PurpleSharp.Lib
         // Password Spraying T1110.003
         public string protocol { get; set; } = "Kerberos";
         public string spray_password { get; set; } = "Passw0rd1";
+        public string domain { get; set; } = "";
 
         // User target variables
         public int user_target_type { get; set; } = 1;
