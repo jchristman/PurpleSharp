@@ -119,6 +119,15 @@ namespace PurpleSharp.Lib
         public string spray_password { get; set; } = "Passw0rd1";
         public string domain { get; set; } = "";
 
+        // User/target mode
+        public string user_target_mode { get; set; } = UserTargetModes.ZipShortest;
+        public static class UserTargetModes
+        {
+            public static string ZipShortest = "zip_shortest";
+            public static string ZipLongest = "zip_longest";
+            public static string CartesianProduct = "product";
+        }
+
         // User target variables
         public int user_target_type { get; set; } = 1;
         public int user_target_total { get; set; } = 5;

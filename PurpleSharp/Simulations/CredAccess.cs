@@ -98,20 +98,71 @@ namespace PurpleSharp.Simulations
                 {
                     //Remote spray against several hosts, distributed
                     //Target hosts either explictly defined in the playbook or randomly picked using LDAP queries
-                    int loops;
-                    if (user_targets.Count >= host_targets.Count) loops = host_targets.Count;
-                    else loops = user_targets.Count;
 
-                    for (int i = 0; i < loops; i++)
+                    if (playbook_task.user_target_mode == PlaybookTask.UserTargetModes.ZipShortest)
                     {
-                        int temp = i;
-                        if (playbook_task.task_sleep > 0 && temp > 0) Thread.Sleep(playbook_task.task_sleep * 1000);
-                        tasklist.Add(Task.Factory.StartNew(() =>
+                        int loops = user_targets.Count >= host_targets.Count ? host_targets.Count : user_targets.Count;
+                        for (int i = 0; i < loops; i++)
                         {
-                            CredAccessHelper.RemoteSmbLogin(host_targets[temp], domain, user_targets[temp].UserName, playbook_task.spray_password, Kerberos, logger);
-
-                        }));
+                            int temp = i;
+                            if (playbook_task.task_sleep > 0 && temp > 0) Thread.Sleep(playbook_task.task_sleep * 1000);
+                            tasklist.Add(Task.Factory.StartNew(() =>
+                            {
+                                CredAccessHelper.RemoteSmbLogin(
+                                    host_targets[temp],
+                                    domain,
+                                    user_targets[temp].UserName,
+                                    playbook_task.spray_password,
+                                    Kerberos,
+                                    logger
+                                );
+                            }));
+                        }
                     }
+                    else if (playbook_task.user_target_mode == PlaybookTask.UserTargetModes.ZipLongest)
+                    {
+                        int loops = Math.Max(user_targets.Count, host_targets.Count);
+                        for (int i = 0; i < loops; i++)
+                        {
+                            if (playbook_task.task_sleep > 0 && i > 0) Thread.Sleep(playbook_task.task_sleep * 1000);
+                            tasklist.Add(Task.Factory.StartNew(() =>
+                            {
+                                CredAccessHelper.RemoteSmbLogin(
+                                    host_targets[i % (host_targets.Count - 1)],
+                                    domain,
+                                    user_targets[i % (user_targets.Count - 1)].UserName,
+                                    playbook_task.spray_password,
+                                    Kerberos,
+                                    logger
+                                );
+                            }));
+                        }
+                    }
+                    else if (playbook_task.user_target_mode == PlaybookTask.UserTargetModes.CartesianProduct)
+                    {
+                        for (int i = 0; i < user_targets.Count; i++)
+                        {
+                            for (int j = 0; j < host_targets.Count; j++)
+                            {
+                                if (playbook_task.task_sleep > 0 && (i + j) > 0) Thread.Sleep(playbook_task.task_sleep * 1000);
+                                tasklist.Add(Task.Factory.StartNew(() =>
+                                {
+                                    CredAccessHelper.RemoteSmbLogin(
+                                        host_targets[j],
+                                        domain,
+                                        user_targets[i].UserName,
+                                        playbook_task.spray_password,
+                                        Kerberos,
+                                        logger
+                                    );
+                                }));
+                            }
+                        }
+                    } else
+                    {
+                        throw new Exception("Invalid user target mode: " + playbook_task.user_target_mode);
+                    }
+
                     Task.WaitAll(tasklist.ToArray());
                 }
                 
