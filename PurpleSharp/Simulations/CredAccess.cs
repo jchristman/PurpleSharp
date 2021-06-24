@@ -52,6 +52,12 @@ namespace PurpleSharp.Simulations
 
         }
 
+        public static Func<bool> GenerateRemoteSmbHelperLambda(Computer computer, String domain, String username, String password, bool Kerberos, Lib.Logger logger)
+        {
+            // Couldn't figure out how to make a lambda that returns void... oh well.
+            return () => { CredAccessHelper.RemoteSmbLogin(computer, domain, username, password, Kerberos, logger); return true; };
+        }
+
         public static void RemoteDomainPasswordSpray(PlaybookTask playbook_task, string log)
         {
             string currentPath = AppDomain.CurrentDomain.BaseDirectory;
@@ -85,10 +91,9 @@ namespace PurpleSharp.Simulations
                         //int tempindex = index;
                         //if (playbook_task.task_sleep > 0 && tempindex > 0) Thread.Sleep(playbook_task.task_sleep * 1000);
                         if (playbook_task.task_sleep > 0 ) Thread.Sleep(playbook_task.task_sleep * 1000);
-                        tasklist.Add(Task.Factory.StartNew(() =>
-                        {
-                            CredAccessHelper.RemoteSmbLogin(host_targets[0], domain, tempuser.UserName, playbook_task.spray_password, Kerberos, logger);
-                        }));
+                        tasklist.Add(Task.Factory.StartNew(
+                            GenerateRemoteSmbHelperLambda(host_targets[0], domain, tempuser.UserName, playbook_task.spray_password, Kerberos, logger)
+                        ));
                     }
                     Task.WaitAll(tasklist.ToArray());
 
@@ -106,17 +111,16 @@ namespace PurpleSharp.Simulations
                         {
                             int temp = i;
                             if (playbook_task.task_sleep > 0 && temp > 0) Thread.Sleep(playbook_task.task_sleep * 1000);
-                            tasklist.Add(Task.Factory.StartNew(() =>
-                            {
-                                CredAccessHelper.RemoteSmbLogin(
+                            tasklist.Add(Task.Factory.StartNew(
+                                GenerateRemoteSmbHelperLambda(
                                     host_targets[temp],
                                     domain,
                                     user_targets[temp].UserName,
                                     playbook_task.spray_password,
                                     Kerberos,
                                     logger
-                                );
-                            }));
+                                )
+                            ));
                         }
                     }
                     else if (playbook_task.user_target_mode == PlaybookTask.UserTargetModes.ZipLongest)
@@ -125,17 +129,16 @@ namespace PurpleSharp.Simulations
                         for (int i = 0; i < loops; i++)
                         {
                             if (playbook_task.task_sleep > 0 && i > 0) Thread.Sleep(playbook_task.task_sleep * 1000);
-                            tasklist.Add(Task.Factory.StartNew(() =>
-                            {
-                                CredAccessHelper.RemoteSmbLogin(
+                            tasklist.Add(Task.Factory.StartNew(
+                                GenerateRemoteSmbHelperLambda(
                                     host_targets[i % (host_targets.Count - 1)],
                                     domain,
                                     user_targets[i % (user_targets.Count - 1)].UserName,
                                     playbook_task.spray_password,
                                     Kerberos,
                                     logger
-                                );
-                            }));
+                                )
+                            ));
                         }
                     }
                     else if (playbook_task.user_target_mode == PlaybookTask.UserTargetModes.CartesianProduct)
@@ -145,17 +148,16 @@ namespace PurpleSharp.Simulations
                             for (int j = 0; j < host_targets.Count; j++)
                             {
                                 if (playbook_task.task_sleep > 0 && (i + j) > 0) Thread.Sleep(playbook_task.task_sleep * 1000);
-                                tasklist.Add(Task.Factory.StartNew(() =>
-                                {
-                                    CredAccessHelper.RemoteSmbLogin(
+                                tasklist.Add(Task.Factory.StartNew(
+                                    GenerateRemoteSmbHelperLambda(
                                         host_targets[j],
                                         domain,
                                         user_targets[i].UserName,
                                         playbook_task.spray_password,
                                         Kerberos,
                                         logger
-                                    );
-                                }));
+                                    )
+                                ));
                             }
                         }
                     } else

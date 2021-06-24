@@ -68,7 +68,13 @@ namespace PurpleSharp.Simulations
 
                 default:
                     dtime = DateTime.Now;
-                    logger.TimestampInfo(String.Format("Failed to authenticate as {0} against {1} ({2}). Error Code:{3}", userName, computer.ComputerName, protocol, result.ToString()));
+                    logger.TimestampInfo(String.Format(
+                        "Failed to authenticate as {0} against {1} ({2}). Error Code:{3}",
+                        userName,
+                        computer.ComputerName != "" ? computer.ComputerName : computer.IPv4,
+                        protocol,
+                        result.ToString()
+                    ));
                     break;
             }
 
