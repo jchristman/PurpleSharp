@@ -343,9 +343,12 @@ namespace PurpleSharp
                     }
 
                     else if (engagement.type.Equals("remote"))
-                    { 
-                        Console.Write("Submit Password for {0}\\{1}: ", engagement.domain, engagement.username);
-                        engagement.password = Utils.GetPassword();
+                    {
+                        if (engagement.password.Length == 0)
+                        {
+                            Console.Write("Submit Password for {0}\\{1}: ", engagement.domain, engagement.username);
+                            engagement.password = Utils.GetPassword();
+                        }
                         logger.TimestampInfo(String.Format("PurpleSharp will executeup to {0} playbook(s) remotely", engagement.playbooks.Count));
 
                         SimulationExerciseResult engagementResults = new SimulationExerciseResult();
